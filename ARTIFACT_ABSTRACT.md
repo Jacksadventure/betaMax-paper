@@ -41,9 +41,9 @@ For non-Docker local execution, reviewers need Python 3.10+, CMake 3.16+, a C++1
 The artifact can be obtained from:
 
 - GitHub repository: <https://github.com/Jacksadventure/betaMax>
-- Artifact commit: `73b2fa5e`
+- Artifact branch: `main`
 - Docker image: `idk233333/betamax:latest`
-- Docker image digest: `sha256:2c88e26498cabc3de2e246688ae91d306d75c2e58c8339709a4351c383b5d532`
+- Docker image digest: `sha256:be2335cc23aa93bda5b4b73ec6fc3bdbc5f34bee3c95ddbe2cda16040dd4ba98`
 
 The Docker image contains the benchmark environment, including the C++ βMax backend, native validators, benchmark scripts, mutation databases, and precomputed DFA caches.
 
