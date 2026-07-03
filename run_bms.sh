@@ -409,6 +409,7 @@ run_quick() {
   printf '\n'
   LSTAR_PRECOMPUTE_MUTATIONS="$quick_precompute" \
   BM_LSTAR_MUTATION_COUNT="$quick_precompute" \
+  BM_FRESH_DB="${BM_FRESH_DB:-1}" \
     "${cmd[@]}"
 }
 

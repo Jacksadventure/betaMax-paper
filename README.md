@@ -56,6 +56,8 @@ This should write:
 
 - `docker-results/smoke_date.db`
 
+Quick mode creates a fresh smoke-test database by default, so this output database contains only the small set of smoke-test cases selected by `--limit`.
+
 Print the smoke-test result summary:
 
 ```bash
@@ -87,6 +89,8 @@ Print the Docker benchmark result summary:
 ```bash
 python report_docker.py
 ```
+
+During full benchmark runs, a small number of per-case repair timeouts can be normal. A timeout means that the case was not repaired successfully within the configured time budget; it is recorded as an unfinished/unsuccessful repair in the result database rather than as an infrastructure failure.
 
 To run the default smoke test directly:
 

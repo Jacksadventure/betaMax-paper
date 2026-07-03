@@ -843,7 +843,7 @@ def repair_and_update_entry(cursor, conn, row):
             distance_original_repaired = levenshtein_distance(original_text, repaired_text)
 
     except subprocess.TimeoutExpired as e:
-        print(f"[ERROR] Repair timed out for entry ID={id_}, alg={algorithm}, timeout={local_timeout}s")
+        print(f"[INFO] Repair timed out for entry ID={id_}, alg={algorithm}, timeout={local_timeout}s; marked not fixed.")
         timed_out = 1
         repair_time = float(local_timeout)
         stdout = _ensure_text(getattr(e, "output", None))
@@ -1031,6 +1031,10 @@ def main():
         )
 
     db_path = args.db
+    if os.environ.get("BM_FRESH_DB", "0").lower() in ("1", "true", "yes") and not (args.resume_only or args.resume):
+        if os.path.exists(db_path):
+            os.remove(db_path)
+            print(f"[INFO] Removed existing database '{db_path}' for a fresh run.")
 
     if args.algorithms:
         # override algorithms in-place
@@ -1219,6 +1223,8 @@ def main():
                         test_limit = remaining
 
                 test_samples = limited[train_limit:train_limit + test_limit]
+                if LIMIT_N is not None and LIMIT_N > 0:
+                    test_samples = test_samples[:LIMIT_N]
 
                 if test_samples:
                     # Insert each test sample into the 'results' table for each algorithm
