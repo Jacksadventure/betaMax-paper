@@ -35,9 +35,17 @@ from typing import Any, Dict, List, Tuple, Optional
 
 os.environ.setdefault("MPLCONFIGDIR", str(Path(__file__).resolve().parent / ".mplconfig"))
 
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
+def _load_pyplot():
+    try:
+        import matplotlib
+    except ModuleNotFoundError as exc:
+        raise ModuleNotFoundError(
+            "matplotlib is required for report plots. Install dependencies with "
+            "'python -m pip install -r requirements.txt'."
+        ) from exc
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    return plt
 
 # ───────────────────────────────── CONFIG ────────────────────────────────── #
 DATABASES       = ["single.db", "double.db", "triple.db"]  # list of DB files to analyse
@@ -1490,6 +1498,7 @@ def plot_rpni_success_vs_iterations():
     - Also produces a combined 3-up 'rpni_success_3up.png' (1/2/3 mutations).
     - Also produces a single combined overlay plot 'betamax_success_across_mutations.png'.
     """
+    plt = _load_pyplot()
     alg_names = ("rpni", "betamax")
     curves: Dict[str, Tuple[List[int], List[float], str]] = {}
     label_map = {
@@ -1684,6 +1693,7 @@ def plot_success_rate_by_mutation_count():
 
     Produces: success_rate_by_mutation_count.png
     """
+    plt = _load_pyplot()
     label_map = {
         "single.db": 1,
         "double.db": 2,
@@ -1740,21 +1750,22 @@ def plot_success_rate_by_mutation_count():
 
 # ─────────────────────────────────────────────────────────────────────────── #
 
-if __name__ == "__main__":
+def main(include_optional: bool = True, include_plots: bool = True) -> None:
     print("———— general ———————————————")
     table_4_5_general()
     print("———— Levenshtein distances ————")
     table_4_5_distances()
-    print("———— BETAMAX mutate vs non ————")
-    betamax_mutation_comparison()
-    print("———— BETAMAX ablation —————————")
-    betamax_ablation_comparison()
-    print("———— BETAMAX learners ————————")
-    betamax_learner_comparison()
-    print("———— BETAMAX precompute m —————")
-    betamax_precompute_mutation_ablation_comparison()
-    print("———— BETAMAX xover budget —————")
-    betamax_xover_ablation_comparison()
+    if include_optional:
+        print("———— BETAMAX mutate vs non ————")
+        betamax_mutation_comparison()
+        print("———— BETAMAX ablation —————————")
+        betamax_ablation_comparison()
+        print("———— BETAMAX learners ————————")
+        betamax_learner_comparison()
+        print("———— BETAMAX precompute m —————")
+        betamax_precompute_mutation_ablation_comparison()
+        print("———— BETAMAX xover budget —————")
+        betamax_xover_ablation_comparison()
     # print("———— Table 4‑5 (data survive) ——————————")
     # table_surviving_ratio()
     print("———— count repaired —————————")
@@ -1763,4 +1774,9 @@ if __name__ == "__main__":
     table_7_perfect()
     print("———— efficiency ———————————")
     table_8_efficiency()
-    plot_rpni_success_vs_iterations()
+    if include_plots:
+        plot_rpni_success_vs_iterations()
+
+
+if __name__ == "__main__":
+    main()

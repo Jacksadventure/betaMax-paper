@@ -175,6 +175,23 @@ def _cpp_dfa_cache_ready(cache_path: str) -> bool:
         return False
 
 
+def _cmd_with_option_value(cmd, option, value):
+    retry_cmd = list(cmd)
+    try:
+        idx = retry_cmd.index(option)
+    except ValueError:
+        if value is not None:
+            retry_cmd.extend([option, str(value)])
+        return retry_cmd
+    if value is None:
+        del retry_cmd[idx:min(idx + 2, len(retry_cmd))]
+    elif idx + 1 < len(retry_cmd):
+        retry_cmd[idx + 1] = str(value)
+    else:
+        retry_cmd.append(str(value))
+    return retry_cmd
+
+
 def _normalize_learner_name(name: str) -> str:
     """
     Normalize learner identifiers coming from env vars so cache naming and CLI
@@ -1120,28 +1137,25 @@ def main():
                     except Exception:
                         pass
                 except subprocess.TimeoutExpired:
-                    print(f"[WARN] Precompute timeout for {format_key} (K=20). Retrying with smaller K ...")
+                    if _cpp_dfa_cache_ready(cache_path):
+                        print(f"[WARN] Precompute timeout for {format_key}, but cache is ready at {cache_path}; using existing cache.")
+                        continue
+                    fallback_mut = int(os.environ.get(
+                        "LSTAR_PRECOMPUTE_MUTATIONS_FALLBACK",
+                        str(max(0, min(10, pre_mut // 2))),
+                    ))
+                    if fallback_mut == pre_mut:
+                        print(f"[WARN] Precompute timeout for {format_key}; no smaller mutation fallback configured, skipping.")
+                        continue
+                    print(f"[WARN] Precompute timeout for {format_key} (mutations={pre_mut}). Retrying with mutations={fallback_mut} ...")
                     try:
-                        small_k = int(os.environ.get("LSTAR_PRECOMP_K_FALLBACK", "10"))
-                        # Rebuild pos/neg with smaller K
-                        connc = sqlite3.connect(mutation_db_path)
-                        curc = connc.cursor()
-                        table_name = get_mutation_table_name(mutation_db_path, connc)
-                        curc.execute(f"SELECT original_text FROM {table_name} ORDER BY LENGTH(original_text), id LIMIT {small_k}")
-                        rows = curc.fetchall()
-                        with open(pos_file, "w", encoding="utf-8") as pf:
-                            for r in rows:
-                                line = (r[0] or "").rstrip("\n")
-                                pf.write(line + "\n")
-                        curc.execute(f"SELECT mutated_text FROM {table_name} ORDER BY LENGTH(mutated_text), id LIMIT {small_k}")
-                        rows = curc.fetchall()
-                        with open(neg_file, "w", encoding="utf-8") as nf:
-                            for r in rows:
-                                line = (r[0] or "").rstrip("\n")
-                                nf.write(line + "\n")
-                        connc.close()
-                        print(f"[DEBUG] Retry precompute cache for {format_key} with K={small_k}")
-                        subprocess.run(cmd, **run_kwargs)
+                        retry_cmd = _cmd_with_option_value(cmd, "--mutations", str(fallback_mut) if fallback_mut > 0 else None)
+                        subprocess.run(retry_cmd, **run_kwargs)
+                        try:
+                            _sz = os.path.getsize(cache_path) if os.path.exists(cache_path) else "NA"
+                            print(f"[INFO] Precompute retry for {format_key} finished, size={_sz}")
+                        except Exception:
+                            pass
                     except subprocess.TimeoutExpired:
                         print(f"[WARN] Precompute second timeout for {format_key}, skipping.")
                     except Exception as e2:

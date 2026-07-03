@@ -2,6 +2,8 @@
 
 Benchmark runners and experiment scripts for betaMax / eRepair-style repair experiments.
 
+**betaMax** is a structured-data repair project for real-world settings where large volumes of data lack explicit format specifications such as regular expressions or grammar files. Unlike existing approaches that depend on format specifications or precise parser error messages, betaMax uses only a set of valid data samples and a black-box validator that can decide whether an input is valid. It automatically infers data formats, builds approximate grammars, and iteratively optimizes repair candidates to fix corrupted data. Experiments on real formats including dates, times, ISBNs, IP addresses, and URLs show that betaMax repairs **86.9%** of corrupted records, achieving a **1.44x** higher repair success rate than the state-of-the-art **epsilonRepair** system while reducing validator calls during repair by **4.6x**. This makes betaMax an efficient and general repair approach for practical data cleaning and data recovery scenarios where no formal format specification is available.
+
 ## What This Checkout Supports
 
 This repository snapshot is organized around the **C++ betaMax backend** in [betamax_cpp](./betamax_cpp).
@@ -26,7 +28,16 @@ Important:
 
 Docker is the recommended way to run this checkout because it packages the native compiler, CMake, RE2, Python runtime, C++ betaMax backend, and validators into one reproducible image.
 
-Build the image:
+Use the published Docker Hub image:
+
+```bash
+docker pull idk233333/betamax:latest
+docker tag idk233333/betamax:latest betamax:latest
+```
+
+The published image includes the bundled C++ backend, validators, and precomputed DFA caches under `cache/`.
+
+Alternatively, build the image locally from this checkout:
 
 ```bash
 docker build -t betamax:latest .
@@ -44,6 +55,12 @@ docker run --rm \
 This should write:
 
 - `docker-results/smoke_date.db`
+
+Print the smoke-test result summary:
+
+```bash
+python report_docker.py --db docker-results/smoke_date.db
+```
 
 After the smoke test succeeds, run the full regex benchmark suite:
 
@@ -64,6 +81,12 @@ and writes:
 - `docker-results/betamax_single.db`
 - `docker-results/betamax_double.db`
 - `docker-results/betamax_triple.db`
+
+Print the Docker benchmark result summary:
+
+```bash
+python report_docker.py
+```
 
 To run the default smoke test directly:
 
@@ -285,15 +308,36 @@ Source corpora and original files live in:
 
 ## Reporting
 
-The default summary script is [report.py](./report.py):
+Use the reporting script that matches where the benchmark wrote its SQLite result DBs.
+
+For local runs that write the default DB names in the repository root, use [report.py](./report.py):
 
 ```bash
 python report.py
 ```
 
-It prints summary tables based on the default DB names such as `single.db`, `double.db`, and `triple.db`.
+This prints summary tables from `single.db`, `double.db`, and `triple.db`.
 
-If you ran with `DB_PREFIX`, either rename/copy the DBs you want to inspect or query them directly with SQLite / your own analysis script.
+For Docker runs that write to [docker-results](./docker-results), use [report_docker.py](./report_docker.py):
+
+```bash
+python report_docker.py
+```
+
+By default this reads `docker-results/betamax_single.db`, `docker-results/betamax_double.db`, and `docker-results/betamax_triple.db`, matching the Docker image's default `DB_PREFIX=/results/betamax`.
+
+If you ran Docker with a custom prefix such as `-e DB_PREFIX=/results/trial1`, pass that prefix when printing the report:
+
+```bash
+python report_docker.py --prefix trial1
+```
+
+For one-off Docker DBs or local runs with custom DB names, pass explicit paths:
+
+```bash
+python report_docker.py --db docker-results/smoke_date.db
+python report_docker.py --db trial1_single.db --db trial1_double.db --db trial1_triple.db
+```
 
 ## Repository Map
 

@@ -25,8 +25,6 @@ project/repair_results/
 docker-results/
 time_limit_sweep_results/
 betamax_latest.tar.gz
-cache/
-cache*/
 
 project/bin/
 betamax_cpp/build/

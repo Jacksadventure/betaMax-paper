@@ -92,8 +92,6 @@ docker-results/
 time_limit_sweep_results/
 time_limit_sweep_results copy/
 betamax_latest.tar.gz
-cache/
-cache*/
 project/repair_results/
 
 # Native validator binaries generated locally by validators/build_validators.sh

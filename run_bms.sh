@@ -471,6 +471,8 @@ Useful env vars:
   BM_QUICK_FORMATS             Formats used by quick mode (default: "date")
   BM_QUICK_LIMIT               Sample limit for quick mode (default: 3)
   BM_QUICK_PRECOMPUTE_MUTATIONS Precompute mutation count for quick mode (default: 10)
+  LSTAR_PRECOMPUTE_MUTATIONS_FALLBACK
+                               Mutation count used after precompute timeout when no cache is ready
   DB_PREFIX                    Prefix per-mode DB names, e.g. trial1_single.db
 
 Notes:
