@@ -421,3 +421,17 @@ Examples:
 ```bash
 ./run_bms.sh single --formats date --limit 5 --resume
 ```
+
+## Cite This Paper
+
+```bibtex
+@inproceedings{luo2026maximal,
+  author    = {Luo, Zijian and Wu, Xi and Kang, Hong Jin and Fekete, Alan and Gopinath, Rahul},
+  title     = {Maximal Format-Free Data Repair},
+  booktitle = {Proceedings of the 41st IEEE/ACM International Conference on Automated Software Engineering},
+  year      = {2026},
+  publisher = {Association for Computing Machinery},
+  doi       = {10.1145/3832783.3834354},
+  url       = {https://doi.org/10.1145/3832783.3834354}
+}
+```
